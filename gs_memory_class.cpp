@@ -378,22 +378,10 @@ bool gs_cp0q_ram_64x128_3sw5sr::check(
   if( re2 ){
     if( re3 && ( rad2 == rad3 ) ) return false;
     if( re4 && ( rad2 == rad4 ) ) return false;
-    if( we0 && ( rad2 == wad0 ) ) return false;
-    if( we1 && ( rad2 == wad1 ) ) return false;
-    if( we2 & ( 0x01ull<<rad2 ) ) return false;
   }
 
   if( re3 ){
     if( re4 && ( rad3 == rad4 ) ) return false;
-    if( we0 && ( rad3 == wad0 ) ) return false;
-    if( we1 && ( rad3 == wad1 ) ) return false;
-    if( we2 & ( 0x01ull<<rad3 ) ) return false;
-  }
-
-  if( re4 ){
-    if( we0 && ( rad4 == wad0 ) ) return false;
-    if( we1 && ( rad4 == wad1 ) ) return false;
-    if( we2 & ( 0x01ull<<rad4 ) ) return false;
   }
 
 #endif
@@ -401,9 +389,19 @@ bool gs_cp0q_ram_64x128_3sw5sr::check(
   if( we0 ){
     if( we1 && (wad0==wad1) ) return false;
     if( we2 ) return false;
+    if( re2 && (rad2==wad0) ) return false;
+    if( re3 && (rad3==wad0) ) return false;
+    if( re4 && (rad4==wad0) ) return false;
+  }else if( we2 ){
+    if( re2 && (we2 & (0x01ull<<rad2)) ) return false;
+    if( re3 && (we2 & (0x01ull<<rad3)) ) return false;
+    if( re4 && (we2 & (0x01ull<<rad4)) ) return false;
   }
   if( we1 ){
     if( we2 & ( 0x01ull << wad1 ) ) return false;
+    if( re2 && (rad2==wad1) ) return false;
+    if( re3 && (rad3==wad1) ) return false;
+    if( re4 && (rad4==wad1) ) return false;
   }
 
   return true;

@@ -12,7 +12,7 @@
 #include "types.h"
 #include "spi.h"
 #include "testbed.hpp"
-#include "gs_memory_test.hpp"
+#include "gs_memory_oldPatternTest.hpp"
 #include "gs_memory_class.hpp"
 #include "rf86_function.hpp"
 #include "rf44_function.hpp"
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 
   for( int i=0; i<TEST_TIMES; i++){
 #ifdef TEST_RF86
-    if( ! randomTest_8w6r( rf86 ) ){
+    if( ! oldPatternTest_8w6r( rf86 ) ){
       printf("\n********************** 8W6R ERROR OUT *********************\n");
       rf86_cnt++;
       //return -2;
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef TEST_RF44
-    if( ! randomTest_4w4r( rf44 ) ){
+    if( ! oldPatternTest_4w4r( rf44 ) ){
       printf("\n********************** 4W4R ERROR OUT *********************\n");
       rf44_cnt++;
       //return -3;
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef TEST_CP35
-    if( ! randomTest_3w5r( cp35 ) ){
+    if( ! oldPatternTest_3w5r( cp35 ) ){
       printf("\n********************** 3W5R ERROR OUT *********************\n");
       cp35_cnt++;
       //return -4;
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef TEST_CP25
-    if( ! randomTest_2w5r( cp25 ) ){
+    if( ! oldPatternTest_2w5r( cp25 ) ){
       printf("\n********************** 2W5R ERROR OUT *********************\n");
       cp25_cnt++;
       //return -5;
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef TEST_CAM464V
-    if( ! randomTest_cam464v( cam464v ) ){
+    if( ! oldPatternTest_cam464v( cam464v ) ){
       printf("\n******************** 464V_CAM ERROR OUT *******************\n");
       cam464v_cnt++;
       //return -6;
@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef TEST_CAMBTB
-    if( ! randomTest_cambtb( cambtb ) ){
+    if( ! oldPatternTest_cambtb( cambtb ) ){
       printf("\n******************** BTB_CAM ERROR OUT *******************\n");
       cambtb_cnt++;
       //return -7;
