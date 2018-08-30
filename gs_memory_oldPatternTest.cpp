@@ -55,7 +55,7 @@ template <class T1, class T2> bool write_patgld( const int index, const T1& pat,
 #endif
 } //}}}1
 
-inline int doTest_rf86( const int index, tb_rf8w6r_in_t& pat, tb_rf8w6r_out_t&gld, gs_regfile_128x64_8sw6sr& rf86 ){
+inline unsigned int doTest_rf86( const int index, tb_rf8w6r_in_t& pat, tb_rf8w6r_out_t&gld, gs_regfile_128x64_8sw6sr& rf86 ){
   // {{{1
   if( rf86.operate(pat.wen7_0&0x01, pat.waddr[0],pat.d[0],
         pat.wen7_0&0x02, pat.waddr[1], pat.d[1],
@@ -823,7 +823,7 @@ bool oldPatternTest_8w6r( gs_regfile_128x64_8sw6sr& rf86 ){
   return true;
 } //}}}1
 
-inline int doTest_rf44( const int index, tb_rf4w4r_in_t& pat, tb_rf4w4r_out_t& gld, gs_regfile_128x64_4sw4sr& rf44 ){
+inline unsigned int doTest_rf44( const int index, tb_rf4w4r_in_t& pat, tb_rf4w4r_out_t& gld, gs_regfile_128x64_4sw4sr& rf44 ){
   //{{{1
   if( rf44.operate(pat.wen3_0&0x01, pat.waddr[0], pat.d[0],
         pat.wen3_0&0x02, pat.waddr[1], pat.d[1],
@@ -1247,7 +1247,7 @@ int oldPatternTest_4w4r( gs_regfile_128x64_4sw4sr & rf44 ){
   return true;
 } //}}}1
 
-inline int doTest_cp35( const int index, tb_cp0q_ram_old_in_t& pat, tb_cp0q_ram_old_out_t& gld, gs_cp0q_ram_64x128_3sw5sr& cp35){
+inline unsigned int doTest_cp35( const int index, tb_cp0q_ram_old_in_t& pat, tb_cp0q_ram_old_out_t& gld, gs_cp0q_ram_64x128_3sw5sr& cp35){
   // {{{1
   if( cp35.operate( !(pat.waddr0&0x40), pat.waddr0&0x3f, pat.wvalue0[0], pat.wvalue0[1], pat.wmask0,
         !(pat.waddr1&0x40), pat.waddr1&0x3f, pat.wvalue1[0], pat.wvalue1[1], pat.wmask1,
@@ -1260,8 +1260,6 @@ inline int doTest_cp35( const int index, tb_cp0q_ram_old_in_t& pat, tb_cp0q_ram_
     gld.q2 = pat.osel ? cp35.get_out2H() :  cp35.get_out2L();
     gld.q3 = pat.osel ? cp35.get_out3H() :  cp35.get_out3L();
     gld.q4 = pat.osel ? cp35.get_out4H() :  cp35.get_out4L();
-    //write_pattern(i, pat);
-    //write_golden( i, gld);
     write_patgld(index, pat, gld);
     return index+1;
   } else exit(-1);
@@ -1972,6 +1970,22 @@ bool oldPatternTest_3w5r( gs_cp0q_ram_64x128_3sw5sr & cp35 ){
   return true;
 } //}}}1
 
+inline unsigned int doTest_cp25( const int index, tb_cp0q_ram_in_t&  pat, tb_cp0q_ram_out_t& gld, gs_cp0q_ram_48x64_2sw5sr& cp25){
+  // {{{1
+  if( cp25.operate( pat.wen1_0&0x01, pat.waddr0, pat.wvalue0, 
+        pat.wen1_0&0x02, pat.waddr1, pat.wvalue1,
+        pat.ren4_0&0x01, pat.raddr0, pat.ren4_0&0x02, pat.raddr1,
+        pat.ren4_0&0x04, pat.raddr2, pat.ren4_0&0x08, pat.raddr3,
+        pat.ren4_0&0x10, pat.raddr4) ){
+    gld.q0 = cp25.get_out0();
+    gld.q1 = cp25.get_out1();
+    gld.q2 = cp25.get_out2();
+    gld.q3 = cp25.get_out3();
+    gld.q4 = cp25.get_out4();
+    write_patgld(index, pat, gld);
+    return index+1;
+  } else exit(-1);
+} // }}}1
 bool oldPatternTest_2w5r( gs_cp0q_ram_48x64_2sw5sr & cp25 ){
   // {{{1
   tb_cp0q_ram_in_t  pat;
@@ -1979,7 +1993,7 @@ bool oldPatternTest_2w5r( gs_cp0q_ram_48x64_2sw5sr & cp25 ){
   memset(&pat, 0, sizeof(pat));
   memset(&gld, 0, sizeof(gld));
 
-  int i=0;
+  int index=0;
   // Read all port at first cycle
   int addr = random() % 48;
   if(cp25.read(addr)){
@@ -1992,60 +2006,14 @@ bool oldPatternTest_2w5r( gs_cp0q_ram_48x64_2sw5sr & cp25 ){
     pat.raddr2 = 0x1ull<<addr;
     pat.raddr1 = 0x1ull<<addr;
     pat.raddr0 = 0x1ull<<addr;
-    gld.q0 = cp25.get_out0();
-    gld.q1 = cp25.get_out1();
-    gld.q2 = cp25.get_out2();
-    gld.q3 = cp25.get_out3();
-    gld.q4 = cp25.get_out4();
-    //write_pattern(i, pat);
-    //write_golden( i, gld);
-    write_patgld(i, pat, gld);
-    i++;
+    index = doTest_cp25( index, pat, gld, cp25);
   } else exit(-1);
 
-  while( i < ONCE_TEST_MAX ){
-    memset(&pat, 0, sizeof(pat));
-    memset(&gld, 0, sizeof(gld));
-    pat.cmp_mask = 0x0000ffffffffffull;
-    pat.wvalue0 = (((uint64_t)random())<<32) + (uint64_t)random();
-    pat.wvalue1 = (((uint64_t)random())<<32) + (uint64_t)random();
-    uint8_t waddr0 = random() % 48;
-    uint8_t waddr1 = random() % 48;
-    uint8_t raddr0 = random() % 48;
-    uint8_t raddr1 = random() % 48;
-    uint8_t raddr2 = random() % 48;
-    uint8_t raddr3 = random() % 48;
-    uint8_t raddr4 = random() % 48;
-    pat.waddr0 = 0x01ull << waddr0;
-    pat.waddr1 = 0x01ull << waddr1;
-    pat.raddr0 = 0x01ull << raddr0;
-    pat.raddr1 = 0x01ull << raddr1;
-    pat.raddr2 = 0x01ull << raddr2;
-    pat.raddr3 = 0x01ull << raddr3;
-    pat.raddr4 = 0x01ull << raddr4;
-    pat.ren4_0 = random()&0x1f;
-    pat.wen1_0 = random()&0x03;
-
-    if( cp25.operate( pat.wen1_0&0x01, waddr0, pat.wvalue0, 
-          pat.wen1_0&0x02, waddr1, pat.wvalue1,
-          pat.ren4_0&0x01, raddr0, pat.ren4_0&0x02, raddr1,
-          pat.ren4_0&0x04, raddr2, pat.ren4_0&0x08, raddr3,
-          pat.ren4_0&0x10, raddr4) ){
-      gld.q0 = cp25.get_out0();
-      gld.q1 = cp25.get_out1();
-      gld.q2 = cp25.get_out2();
-      gld.q3 = cp25.get_out3();
-      gld.q4 = cp25.get_out4();
-      //write_pattern(i, pat);
-      //write_golden( i, gld);
-      write_patgld(i, pat, gld);
-      i++;
-    }
-  };
 
   // Start test
   uint32_t st=0;
   // Testing CP0Q_RAM_V
+  // {{{2
   printf("\n\nStart testing CP0Q_RAM_V ...\n");
   tb_start(CP0Q_RAM_V, ONCE_TEST_MAX-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
@@ -2073,8 +2041,10 @@ bool oldPatternTest_2w5r( gs_cp0q_ram_48x64_2sw5sr & cp25 ){
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
   if(!tb_clear()) return false;
+  // }}}2
 
   // Testing CP0Q_RAM_H
+  // {{{2
   printf("\n\nStart testing CP0Q_RAM_H ...\n");
   tb_start(CP0Q_RAM_H, ONCE_TEST_MAX-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
@@ -2102,10 +2072,24 @@ bool oldPatternTest_2w5r( gs_cp0q_ram_48x64_2sw5sr & cp25 ){
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
   if(!tb_clear()) return false;
+  // }}}2
 
   return true;
 } // }}}1
 
+inline unsigned int doTest_cam464v(const int index, tb_cam64x64_in_t& pat, tb_cam64x64_out_t& gld, gs_cam_464v_64x64_1wrs& cam464v){
+  // {{{1
+  if( cam464v.operate( pat.sen, pat.svpn, pat.sasid, pat.valid,
+        pat.wen, pat.wd, pat.wvpn, pat.mask, pat.wasid, pat.G,
+        pat.ren, pat.addr) ){
+    gld.match = cam464v.get_match();
+    gld.rd    = cam464v.get_out();
+    gld.hit   = cam464v.get_hit();
+    //cam464v_print_vec( i, pat, gld );
+    write_patgld(index, pat, gld);
+    return index+1;
+  } else exit(-1);
+} // }}}1
 bool oldPatternTest_cam464v( gs_cam_464v_64x64_1wrs & cam464v ){
   // {{{1
   tb_cam64x64_in_t  pat;
@@ -2113,12 +2097,12 @@ bool oldPatternTest_cam464v( gs_cam_464v_64x64_1wrs & cam464v ){
   memset(&pat, 0, sizeof(pat));
   memset(&gld, 0, sizeof(gld));
 
-  int i=0;
+  int index=0;
   // Read all port at first cycle
   cam464v.operate( /*se*/true, 0,0, /*valid*/0x00ull, false, 0, 0, 0, 0, 0, false, 0);
-  i=cam464v_search(i, 0, 0, 0x00ull, cam464v.get_match(), cam464v.get_out(), cam464v.get_hit());
+  index=cam464v_search(index, 0, 0, 0x00ull, cam464v.get_match(), cam464v.get_out(), cam464v.get_hit());
 
-  while( i < ONCE_TEST_MAX ){
+  while( index < ONCE_TEST_MAX ){
     memset(&pat, 0, sizeof(pat));
     memset(&gld, 0, sizeof(gld));
     pat.cmp_mask = 0x1ffffull;
@@ -2176,6 +2160,7 @@ bool oldPatternTest_cam464v( gs_cam_464v_64x64_1wrs & cam464v ){
   // Start test
   uint32_t st=0;
   // Testing CAM_64X64_V
+  // {{{2
   printf("\n\nStart testing CAM_64X64_V ...\n");
   tb_start(CAM_64X64_V, ONCE_TEST_MAX-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
@@ -2203,8 +2188,10 @@ bool oldPatternTest_cam464v( gs_cam_464v_64x64_1wrs & cam464v ){
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
   if(!tb_clear()) return false;
+  // }}}2
 
   // Testing CAM_64X64_H
+  // {{{2
   printf("\n\nStart testing CAM_64X64_H ...\n");
   tb_start(CAM_64X64_H, ONCE_TEST_MAX-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
@@ -2232,10 +2219,27 @@ bool oldPatternTest_cam464v( gs_cam_464v_64x64_1wrs & cam464v ){
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
   if(!tb_clear()) return false;
+  // }}}2
 
   return true;
 } // }}}1
 
+inline unsigned int doTest_cambtb( const int index, tb_btbcam_in_t& pat, tb_btbcam_out_t& gld, gs_cam_btb_30x96_1w1s cambtb){
+  // {{{1
+  if( cambtb.operate( pat.sen, pat.svpn, pat.valid[0], pat.valid[1], pat.valid[2],
+        pat.wen, pat.addr[0], pat.addr[1], pat.addr[2], pat.wd, pat.wvpn) ){
+    gld.match[0] = cambtb.get_match31_00();
+    gld.match[1] = cambtb.get_match63_32();
+    gld.match[2] = cambtb.get_match95_64();
+    uint64_t rd  = cambtb.get_out();
+    gld.rd[0]    = rd&0xffffffff; 
+    gld.rd[1]    = (rd>>32)&0x3fff; 
+    gld.hit   = cambtb.get_hit();
+    //btbcam_print_vec( i, pat, gld );
+    write_patgld(index, pat, gld);
+    return index+1;
+  } else exit(-1);
+} // }}}1
 bool oldPatternTest_cambtb( gs_cam_btb_30x96_1w1s & cambtb ){
   // {{{1
   tb_btbcam_in_t  pat;
