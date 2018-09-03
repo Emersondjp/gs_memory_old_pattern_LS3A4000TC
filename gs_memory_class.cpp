@@ -365,14 +365,12 @@ bool gs_cp0q_ram_64x128_3sw5sr::check(
     if( re2 && ( rad0 == rad2 ) ) return false;
     if( re3 && ( rad0 == rad3 ) ) return false;
     if( re4 && ( rad0 == rad4 ) ) return false;
-    //if( we2 & ( 0x01ull<<rad0 ) ) return false;
   }
 
   if( re1 ){
     if( re2 && ( rad1 == rad2 ) ) return false;
     if( re3 && ( rad1 == rad3 ) ) return false;
     if( re4 && ( rad1 == rad4 ) ) return false;
-    //if( we2 & ( 0x01ull<<rad1 ) ) return false;
   }
 
   if( re2 ){
@@ -383,7 +381,6 @@ bool gs_cp0q_ram_64x128_3sw5sr::check(
   if( re3 ){
     if( re4 && ( rad3 == rad4 ) ) return false;
   }
-
 #endif
 
   if( we0 ){
@@ -603,7 +600,9 @@ bool gs_cp0q_ram_48x64_2sw5sr::check( bool we0, uint8_t wad0, bool we1, uint8_t 
 
   if( we0 && we1 && (wad0==wad1) ) return false;
 
+#ifndef CP25_STRICT_OFF
   if( re0 && re1 && (rad0==rad1) ) return false;
+#endif
 
   if(we0){
     if(re0 && (rad0==wad0)) return false;
@@ -882,8 +881,8 @@ bool gs_cam_btb_30x96_1w1s::check( bool se, uint32_t svpn,
   return true;
 }
 
-bool gs_cam_btb_30x96_1w1s::operate( bool se, uint32_t svpn, uint32_t valid31_00, uint32_t valid63_32, uint32_t valid95_64,
-    bool we, uint32_t addr31_00, uint32_t addr63_32, uint32_t addr95_64, uint64_t data, uint32_t wvpn ){
+bool gs_cam_btb_30x96_1w1s::operate( uint8_t se, uint32_t svpn, uint32_t valid31_00, uint32_t valid63_32, uint32_t valid95_64,
+    uint8_t we, uint32_t addr31_00, uint32_t addr63_32, uint32_t addr95_64, uint64_t data, uint32_t wvpn ){
 
   if( not this->check( se, svpn, valid31_00, valid63_32, valid95_64, we,
         addr31_00, addr63_32, addr95_64, wvpn, data ) ) return false;
@@ -933,7 +932,8 @@ bool gs_cam_btb_30x96_1w1s::operate( bool se, uint32_t svpn, uint32_t valid31_00
       if( match_addr < 32 ) match31_00 = (0x01ull<<match_addr);
       else if(match_addr < 64) match63_32 = (0x01ull<<(match_addr-32));
       else if(match_addr < 96) match95_64 = (0x01ull<<(match_addr-64));
-    } else {
+    }
+    if( !flag ){
       this->hit = 0x0;
       this->match31_00 = 0x00ul;
       this->match63_32 = 0x00ul;
