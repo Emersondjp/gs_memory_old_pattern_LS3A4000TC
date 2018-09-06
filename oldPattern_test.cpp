@@ -22,6 +22,15 @@
 #include "btbcam_function.hpp"
 
 #define TEST_TIMES 5
+uint64_t rf86_cfg=0xf0000000;
+// rf86_cfg |= (0x0 <<  0);  // RDLY_S    = 3'b111;
+// rf86_cfg |= (0x0 <<  4);  // WWL_DLY_S = 3'b111;
+// rf86_cfg |= (0x0 <<  8);  // CK2_DLY_S = 3'b111;
+// rf86_cfg |= (0x0 << 12);  // BPGEN_S   = 2'b11;
+// rf86_cfg |= (0x0 << 16);  // RPC_S     = 2'b11;
+// rf86_cfg |= (0x0 << 20);  // PW1_S     = 2'b11;
+// rf86_cfg |= (0x0 << 24);  // PW2_S     = 2'b11;
+// rf86_cfg |= (0xf << 28);  // PC_S      = 4'b1111;
 
 extern unsigned int str2num(unsigned char *s);
 extern int pat_cnt;
@@ -36,6 +45,7 @@ bool gs_memory_initial(
     gs_cam_btb_30x96_1w1s& cambtb){
   // Initial all gs_memory
 
+  bool pass_flag = true;
   printf("In Initial Stage...\n");
   // Begin initialization of virtual memory
   rf86.memset(0x00ull);
@@ -47,17 +57,19 @@ bool gs_memory_initial(
   // End initialization of virtual memory
 
   // Begin initialization of testchip
-  printf("  REGFILE_8W6R Initial Stage...\n");
   int index=0;
   uint32_t st=0;
+
+  printf("  REGFILE_8W6R Initial Stage...\n");
   index = rf86_memset(index, 0, 0x00);
   index = rf86_read(index, 0x00, 0x00ull);
-  tb_start(REGFILE_8W6R_H, index-1);
+  index = rf86_read(index, 0x00, 0x00ull);
+  tb_start(REGFILE_8W6R_H, index-1, rf86_cfg);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
-  tb_start(REGFILE_8W6R_V, index-1, 0xf0000000);
+  if(!tb_clear()) pass_flag = false;
+  tb_start(REGFILE_8W6R_V, index-1, rf86_cfg);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   fflush(stdout);
 
   printf("  REGFILE_4W4R Initial Stage...\n");
@@ -66,10 +78,10 @@ bool gs_memory_initial(
   index = rf44_read(index, 0x00, 0x00ull);
   tb_start(REGFILE_4W4R_H, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
-  tb_start(REGFILE_4W4R_V, index-1, 0xf0000000);
+  if(!tb_clear()) pass_flag = false;
+  tb_start(REGFILE_4W4R_V, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   fflush(stdout);
 
   printf("  CP0Q_RAM_OLD Initial Stage...\n");
@@ -78,10 +90,10 @@ bool gs_memory_initial(
   index = cp35_read(index, 0x00, 0x00ull, 0);
   tb_start(CP0Q_RAM_OLD_H, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   tb_start(CP0Q_RAM_OLD_V, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   fflush(stdout);
 
   printf("  CP0Q_RAM Initial Stage...\n");
@@ -90,10 +102,10 @@ bool gs_memory_initial(
   index = cp25_read(index, 0, 0x00ull);
   tb_start(CP0Q_RAM_H, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   tb_start(CP0Q_RAM_V, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   fflush(stdout);
 
   printf("  CAM_64X64 Initial Stage...\n");
@@ -102,27 +114,27 @@ bool gs_memory_initial(
   index = cam464v_read(index, 63, 0x00ull);
   tb_start(CAM_64X64_H, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   tb_start(CAM_64X64_V, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   fflush(stdout);
 
   printf("  BTBCAM_1W1S Initial Stage...\n");
   index = 0;
-  index = btbcam_memset2(index, 0x00ull, 0x00);
+  index = btbcam_memset2(index, 0x00, 0x00ull);
   index = btbcam_search(index, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3fffffffffffull, false);
   tb_start(BTBCAM_1W1S_H, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   tb_start(BTBCAM_1W1S_V, index-1);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
-  if(!tb_clear()) return false;
+  if(!tb_clear()) pass_flag = false;
   fflush(stdout);
 
   printf("End of Initial Stage...\n\n");
   // End initialization of testchip
-  return true;
+  return pass_flag;
 }
 
 int main(int argc, char* argv[])
@@ -151,12 +163,14 @@ int main(int argc, char* argv[])
   gs_cam_btb_30x96_1w1s     cambtb;
 
   // Initial 
-  if( !gs_memory_initial(rf86, rf44, cp35, cp25, cam464v, cambtb) ){
-    printf("**ERROR** : Initial Error!\n");
+  if(1){
+    if( !gs_memory_initial(rf86, rf44, cp35, cp25, cam464v, cambtb) ){
+      printf("**ERROR** : Initial Error!\n");
+      fflush(stdout);
+      //return -1;
+    }
     fflush(stdout);
-    return -1;
   }
-  fflush(stdout);
 
   int rf86_cnt=0, rf44_cnt=0, cp35_cnt=0, cp25_cnt=0, cam464v_cnt=0, cambtb_cnt=0;
 

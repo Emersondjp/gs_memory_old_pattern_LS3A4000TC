@@ -18,6 +18,7 @@
 
 int pat_cnt=0;
 int gld_cnt=0;
+extern uint32_t rf86_cfg;
 
 template <class T1, class T2> bool write_patgld( const int index, const T1& pat, const T2& gld ){
   // {{{1
@@ -92,11 +93,11 @@ bool oldPatternTest_8w6r( gs_regfile_128x64_8sw6sr& rf86 ){
   int index=0;
   // Read all port at first cycle
   // {{{2
-  int addr = random()&0x7F;
+  int addr = 0x36;
   if(rf86.read(addr)){
     memset(&pat, 0, sizeof(pat));
     memset(&gld, 0, sizeof(gld));
-    pat.cmp_mask = 0x00ffffffffffffull;
+    //pat.cmp_mask = 0x00ffffffffffffull;
     pat.ren5_0 = 0x3f;
     pat.raddr[5] = addr;
     pat.raddr[4] = addr;
@@ -104,6 +105,7 @@ bool oldPatternTest_8w6r( gs_regfile_128x64_8sw6sr& rf86 ){
     pat.raddr[2] = addr;
     pat.raddr[1] = addr;
     pat.raddr[0] = addr;
+    index = doTest_rf86(index, pat, gld, rf86);
     index = doTest_rf86(index, pat, gld, rf86);
   } else exit(-1); // }}}2
 
@@ -750,10 +752,11 @@ bool oldPatternTest_8w6r( gs_regfile_128x64_8sw6sr& rf86 ){
 
   // Start test
   uint32_t st=0;
+  bool flag=true;
   // Testing REGFILE_8W6R_V
   // {{{2
   printf("\n\nStart testing REGFILE_8W6R_V ...\n");
-  tb_start(REGFILE_8W6R_V, index-1, 0xf0000000);
+  tb_start(REGFILE_8W6R_V, index-1, rf86_cfg);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
   if(st&0x2){
 #ifdef PRINT_DETAIL
@@ -778,13 +781,13 @@ bool oldPatternTest_8w6r( gs_regfile_128x64_8sw6sr& rf86 ){
   }
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
-  if(!tb_clear()) return false;
+  if(!tb_clear()) flag=false;
   // }}}2
 
   // Testing REGFILE_8W6R_H
   // {{{2
   printf("\n\nStart testing REGFILE_8W6R_H ...\n");
-  tb_start(REGFILE_8W6R_H, index-1, 0xf0000000);
+  tb_start(REGFILE_8W6R_H, index-1, rf86_cfg);
   while(((st=status_read()) & 0x01) == 0) usleep(10);
   if(st&0x2){
 #ifdef PRINT_DETAIL
@@ -809,10 +812,10 @@ bool oldPatternTest_8w6r( gs_regfile_128x64_8sw6sr& rf86 ){
   }
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
-  if(!tb_clear()) return false;
+  if(!tb_clear()) flag=false;
   // }}}2
 
-  return true;
+  return flag;
 } // }}}1
 
 inline unsigned int doTest_rf44( const int index, tb_rf4w4r_in_t& pat, tb_rf4w4r_out_t& gld, gs_regfile_128x64_4sw4sr& rf44 ){
@@ -1900,6 +1903,7 @@ bool oldPatternTest_3w5r( gs_cp0q_ram_64x128_3sw5sr & cp35 ){
 
   // Start test
   uint32_t st=0;
+  bool flag=true;
   // Testing CP0Q_RAM_OLD_V
   // {{{2
   printf("\n\nStart testing CP0Q_RAM_OLD_V ...\n");
@@ -1928,7 +1932,7 @@ bool oldPatternTest_3w5r( gs_cp0q_ram_64x128_3sw5sr & cp35 ){
   }
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
-  if(!tb_clear()) return false;
+  if(!tb_clear()) flag=false;
   // }}}2
 
   // Testing CP0Q_RAM_OLD_H
@@ -1959,10 +1963,10 @@ bool oldPatternTest_3w5r( gs_cp0q_ram_64x128_3sw5sr & cp35 ){
   }
 #endif
   printf("Done, test %s\n", st&0x02 ? "FAILED":"PASSED");
-  if(!tb_clear()) return false;
+  if(!tb_clear()) flag=false;
   // }}}2
 
-  return true;
+  return flag;
 } // }}}1
 
 inline unsigned int doTest_cp25( const int index, tb_cp0q_ram_in_t&  pat, tb_cp0q_ram_out_t& gld, gs_cp0q_ram_48x64_2sw5sr& cp25){
